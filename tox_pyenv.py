@@ -1,9 +1,7 @@
 """tox-pyenv
 
-Plugin that hijacks the tox_get_python_executable using
-tox's plugin system:
+Plugin for the tox_get_python_executable using tox's plugin system:
 
-    https://testrun.org/tox/latest/plugins.html
     https://testrun.org/tox/latest/plugins.html#tox.hookspecs.tox_get_python_executable
 
 Modified to instead use `pyenv which` to locate the
@@ -64,21 +62,6 @@ class PyenvMissing(ToxPyenvException, RuntimeError):
 class PyenvWhichFailed(ToxPyenvException):
 
     """Calling `pyenv which` failed."""
-
-
-@tox_hookimpl
-def tox_addoption(parser):
-
-    tox_pyenv_group = parser.add_argument_group(
-        title='tox-pyenv plugin options',
-    )
-    tox_pyenv_group.add_argument(
-        '--tox-pyenv-fallback', '-F',
-        default=False,
-        action='store_true',
-        help=('If `pyenv which {basepython}` exits non-zero when looking '
-              'up the python executable, fallback to tox\'s built-in '
-              'logic.'))
 
 
 @tox_hookimpl
