@@ -64,6 +64,21 @@ class PyenvWhichFailed(ToxPyenvException):
 
 
 @tox_hookimpl
+def tox_addoption(parser):
+
+    tox_pyenv_group = parser.add_argument_group(
+        title='tox-pyenv plugin options',
+    )
+    tox_pyenv_group.add_argument(
+        '--tox-pyenv-fallback', '-F',
+        default=False,
+        action='store_true',
+        help=('If `pyenv which {basepython}` exits non-zero when looking '
+              'up the python executable, fallback to tox\'s built-in '
+              'logic.'))
+
+
+@tox_hookimpl
 def tox_get_python_executable(envconfig):
     try:
         pipe = subprocess.Popen(
