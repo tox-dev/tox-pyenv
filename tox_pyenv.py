@@ -30,11 +30,6 @@ your python executable to exclusively use `pyenv which`.
 
 """
 
-import subprocess
-
-from tox import hookimpl as tox_hookimpl
-
-
 # __about__
 __title__ = 'tox-pyenv'
 __summary__ = ('tox plugin that makes tox use `pyenv which` '
@@ -46,6 +41,14 @@ __email__ = 'smlstvnh@gmail.com'
 __keywords__ = ['tox', 'pyenv', 'python']
 __license__ = 'Apache License, Version 2.0'
 # __about__
+
+
+import logging
+import subprocess
+
+from tox import hookimpl as tox_hookimpl
+
+LOG = logging.getLogger(__name__)
 
 
 class ToxPyenvException(Exception):
@@ -89,7 +92,54 @@ def tox_get_python_executable(envconfig):
     except OSError:
         raise PyenvMissing(
             "pyenv doesn't seem to be installed, you probably "
-            "don't want to be using this tox-pyenv plugin.")
+            "don't want this ({}) plugin installed.".format(__title__))
     if pipe.poll() != 0:
-        raise PyenvWhichFailed(err)
+        if not envconfig.tox_pyenv_fallback:
+            raise PyenvWhichFailed(err)
     return out.strip()
+
+
+def _setup_no_fallback(parser):
+    """Add the option, --tox-pyenv-no-fallback.
+
+    If this option is set, do not allow fallback to tox's built-in
+    strategy for looking up python executables if the call to `pyenv which`
+    by this plugin fails. This will allow the error to raise instead
+    of falling back to tox's default behavior.
+    """
+
+    cli_dest = 'tox_pyenv_fallback'
+    halp = ('If `pyenv which {basepython}` exits non-zero when looking '
+            'up the python executable, do not allow fallback to tox\'s '
+            'built-in default logic.')
+    # Add a command-line option.
+    tox_pyenv_group = parser.argparser.add_argument_group(
+        title='{} plugin options'.format(__title__),
+    )
+    tox_pyenv_group.add_argument(
+        '--tox-pyenv-no-fallback', '-F',
+        dest=cli_dest,
+        default=True,
+        action='store_false',
+        help=halp
+    )
+
+    def _pyenv_fallback(testenv_config, value):
+        cli_says = getattr(testenv_config.config.option, cli_dest)
+        return cli_says or value
+
+    # Add an equivalent tox.ini [testenv] section option.
+    parser.add_testenv_attribute(
+        name=cli_dest,
+        type="bool",
+        postprocess=_pyenv_fallback,
+        default=False,
+        help=('If `pyenv which {basepython}` exits non-zero when looking '
+              'up the python executable, allow fallback to tox\'s '
+              'built-in default logic.'),
+    )
+
+
+@tox_hookimpl
+def tox_addoption(parser):
+    _setup_no_fallback(parser)
