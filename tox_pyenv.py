@@ -33,7 +33,7 @@ __title__ = 'tox-pyenv'
 __summary__ = ('tox plugin that makes tox use `pyenv which` '
                'to find python executables')
 __url__ = 'https://github.com/samstav/tox-pyenv'
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 __author__ = 'Sam Stavinoha'
 __email__ = 'smlstvnh@gmail.com'
 __keywords__ = ['tox', 'pyenv', 'python']
