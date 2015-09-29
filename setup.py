@@ -57,13 +57,13 @@ CLASSIFIERS = [
 
 package_attributes = {
     'author': about['__author__'],
+    'author_email': about['__email__'],
     'classifiers': CLASSIFIERS,
     'description': about['__summary__'],
     'entry_points': ENTRY_POINTS,
     'install_requires': INSTALL_REQUIRES,
     'keywords': ' '.join(about['__keywords__']),
     'license': about['__license__'],
-    'maintainer_email': about['__email__'],
     'name': about['__title__'],
     'py_modules': ['tox_pyenv'],
     'url': about['__url__'],
