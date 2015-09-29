@@ -47,7 +47,7 @@ class TestThings(unittest.TestCase):
             expected_string = expected_string.split('-')[1]
         else:
             actual_list = list(platform.python_version_tuple())
-        expected_list = [int(x) for x in expected_string.split('.')]
+        expected_list = expected_string.split('.')
 
         print('Actual version for this tox env: Python %s'
               % platform.python_version())
