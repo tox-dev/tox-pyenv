@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 
-from os.path import dirname as _dirn
-from os.path import join as _join
-from os.path import realpath as _realp
+import os
 from setuptools import setup
 import subprocess
 import sys
 
 
-with open(_join(_dirn(_realp(__file__)), 'tox_pyenv.py'), 'r') as abt:
+here = os.path.dirname(os.path.realpath(__file__))
+with open(os.path.join(here, 'tox_pyenv.py'), 'r') as abt:
     marker, about, abt = '# __about__', {}, abt.read()
     assert abt.count('# __about__') == 2
     abt = abt[abt.index(marker):abt.rindex(marker)]
@@ -25,6 +24,11 @@ if any(k in ' '.join(sys.argv).lower() for k in ['upload', 'dist']):
     else:
         if current_commit and len(current_commit) == 40:
             about['__keywords__'].append(current_commit[:8])
+
+
+# pandoc --from=markdown_github --to=rst README.md --output=README.rst
+with open(os.path.join(here, 'README.rst')) as rdme:
+    LONG_DESCRIPTION = rdme.read()
 
 
 ENTRY_POINTS = {
@@ -66,6 +70,7 @@ package_attributes = {
     'install_requires': INSTALL_REQUIRES,
     'keywords': ' '.join(about['__keywords__']),
     'license': about['__license__'],
+    'long_description': LONG_DESCRIPTION,
     'name': about['__title__'],
     'py_modules': ['tox_pyenv'],
     'url': about['__url__'],
