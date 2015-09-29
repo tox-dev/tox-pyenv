@@ -31,13 +31,12 @@ class TestThings(unittest.TestCase):
         expected_string = os.environ[toxenvname]
         print('\n\nTOX ENV NAME: %s' % toxenvname)
         if platform.python_implementation() == 'PyPy':
-            a, b, c = sys.pypy_version_info[:3]
-            actual_list = [a, b, c]
+            actual_list = [str(_) for _ in sys.pypy_version_info[:3]]
             expected_string = expected_string.split('-')[1]
             print('\nExpected version for this tox env: PyPy %s'
                   % expected_string)
-            print('Actual version for this tox env: Python %s'
-                  % platform.python_version())
+            print('Actual version for this tox env: PyPy %s'
+                  % '.'.join(actual_list))
         else:
             print('\nExpected version for this tox env: Python %s'
                   % expected_string)
