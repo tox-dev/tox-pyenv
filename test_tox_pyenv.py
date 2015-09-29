@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import os
+import platform
 import subprocess
 import sys
 import unittest
@@ -38,16 +39,22 @@ class TestThings(unittest.TestCase):
 
         toxenvname = 'TOX_%s' % os.environ['TOX_ENV_NAME'].upper()
         expected_string = os.environ[toxenvname]
-        actual_list = list(sys.version_info[:3])
         print('\n\nTOX ENV NAME: %s' % toxenvname)
         print('\nExpected version for this tox env: Python %s' % expected_string)
+        if platform.python_implementation() == 'PyPy':
+            a, b, c = sys.pypy_version_info[:3]
+            actual_list = [a, b, c]
+            expected_string = expected_string.split('-')[1]
+        else:
+            actual_list = list(platform.python_version_tuple())
+        expected_list = [int(x) for x in expected_string.split('.')]
+
         print('Actual version for this tox env: Python %s'
-              % '.'.join([str(x) for x in actual_list]))
+              % platform.python_version())
         print('\n\nPYTHON VERSION (verbose)')
         print('*************************')
         print(sys.version)
         print('\n')
-        expected_list = [int(x) for x in expected_string.split('.')]
         self.assertEqual(actual_list, expected_list)
 
     def test_what_python(self):
