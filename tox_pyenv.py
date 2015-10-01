@@ -74,7 +74,9 @@ def tox_get_python_executable(envconfig):
         pipe = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
+            stderr=subprocess.PIPE,
+            universal_newlines=True
+        )
         out, err = pipe.communicate()
     except OSError:
         raise PyenvMissing(
