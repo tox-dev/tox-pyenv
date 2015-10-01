@@ -15,6 +15,8 @@ dependencies:
     - pyenv local 2.7.9 3.4.3 3.5.0
 ```
 
+The versions passed to `pyenv local` must be [installed](https://github.com/yyuu/pyenv/blob/master/COMMANDS.md#pyenv-install) for this to work. Check out the list of python versions that are pre-installed in the CircleCI build environment: https://circleci.com/docs/environment#python
+
 #### Corresponding [tox.ini](https://tox.readthedocs.org/en/latest/config.html)
 
 ```ini
@@ -22,7 +24,7 @@ dependencies:
 envlist = py27,py34,py35
 ```
 
-The result of the setup above means running `tox` will run tests against python 2.7.9, python 3.4.3 and python 3.5.0
+The result of the setup above means running `tox` will run tests against python 2.7.9, python 3.4.3 and python 3.5.0, assuming those versions of python have been [`pyenv install`ed](https://github.com/yyuu/pyenv/blob/master/COMMANDS.md#pyenv-install)
 
 #### notes
 
