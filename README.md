@@ -23,3 +23,7 @@ envlist = py27,py34,py35
 ```
 
 The result of the setup above means running `tox` will run tests against python 2.7.9, python 3.4.3 and python 3.5.0
+
+#### notes
+
+If you want tox to _exclusively_ use `pyenv which` to find executables, you will need use the `--tox-pyenv-no-fallback` command line option, or set `tox_pyenv_fallback=False` in your tox.ini. By default, if `tox-pyenv` fails to find a python executable it will fallback to tox's built-in strategy.
