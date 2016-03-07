@@ -28,6 +28,17 @@ your python executable to exclusively use `pyenv which`.
 
 """
 
+import logging
+import ntpath
+import os
+import re
+import subprocess
+
+from distutils.version import LooseVersion
+
+import py
+from tox import hookimpl as tox_hookimpl
+
 # __about__
 __title__ = 'tox-pyenv'
 __summary__ = ('tox plugin that makes tox use `pyenv which` '
@@ -41,13 +52,9 @@ __license__ = 'Apache License, Version 2.0'
 # __about__
 
 
-import logging
-import subprocess
-
-import py
-from tox import hookimpl as tox_hookimpl
-
 LOG = logging.getLogger(__name__)
+PYTHON_VERSION_RE = re.compile(r'^(?:python|py)([\d\.]{1,8})$',
+                               flags=re.IGNORECASE)
 
 
 class ToxPyenvException(Exception):
@@ -65,28 +72,35 @@ class PyenvWhichFailed(ToxPyenvException):
     """Calling `pyenv which` failed."""
 
 
-@tox_hookimpl
-def tox_get_python_executable(envconfig):
-    """Return a python executable for the given python base name.
+class NoSuitableVersionFound(ToxPyenvException):
 
-    The first plugin/hook which returns an executable path will determine it.
+    """Could not a find a python version that satisfies requirement."""
 
-    ``envconfig`` is the testenv configuration which contains
-    per-testenv configuration, notably the ``.envname`` and ``.basepython``
-    setting.
+
+def _get_pyenv_known_versions():
+    """Return searchable output from `pyenv versions`."""
+    known_versions = _pyenv_run(['versions'])[0].split(os.linesep)
+    return [v.strip() for v in known_versions if v.strip()]
+
+
+def _pyenv_run(command, **popen_kwargs):
+    """Run pyenv command with Popen.
+
+    Returns the result tuple as (stdout, stderr, returncode).
     """
     try:
-        # pylint: disable=no-member
-        pyenv = (getattr(py.path.local.sysfind('pyenv'), 'strpath', 'pyenv')
-                 or 'pyenv')
-        cmd = [pyenv, 'which', envconfig.basepython]
+        pyenv = (getattr(
+            py.path.local.sysfind('pyenv'), 'strpath', 'pyenv') or 'pyenv')
+        cmd = [pyenv] + command
         pipe = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            universal_newlines=True
+            universal_newlines=True,
+            **popen_kwargs
         )
         out, err = pipe.communicate()
+        out, err = out.strip(), err.strip()
     except OSError:
         err = '\'pyenv\': command not found'
         LOG.warning(
@@ -94,16 +108,89 @@ def tox_get_python_executable(envconfig):
             "don't want this plugin installed either."
         )
     else:
-        if pipe.poll() == 0:
+        returncode = pipe.poll()
+        if returncode == 0:
             return out.strip()
         else:
             if not envconfig.tox_pyenv_fallback:
-                raise PyenvWhichFailed(err)
-    LOG.debug("`%s` failed thru tox-pyenv plugin, falling back. "
-              "STDERR: \"%s\" | To disable this behavior, set "
+                cmdstr = ' '.join([str(x) for x in cmd])
+                LOG.error("The command `%s` executed by the tox-pyenv plugin failed. "
+                          "STDERR: \"%s\"   STDOUT: \"%s\"", cmdstr, err, out)
+                raise subprocess.CalledProcessError(returncode, cmdstr, output=err)
+    LOG.error("`%s` failed thru tox-pyenv plugin, falling back to "
+              "tox's built-in behavior. "
+              "STDERR: \"%s\" | To disable this fallback, set "
               "tox_pyenv_fallback=False in your tox.ini or use "
               " --tox-pyenv-no-fallback on the command line.",
               ' '.join([str(x) for x in cmd]), err)
+
+
+def _extrapolate_to_known_version(desired, known):
+    """Given the desired version, find an acceptable available version."""
+    match = PYTHON_VERSION_RE.match(desired)
+    if match:
+        match = match.groups()[0]
+        if match in known:
+            return match
+        else:
+            matches = sorted([LooseVersion(j) for j in known
+                              if j.startswith(match)])
+            if matches:
+                # Select the latest.
+                # e.g. python2 gets 2.7.10
+                # if known_versions = ['2.7.3', '2.7', '2.7.10']
+                return matches[-1].vstring
+    raise NoSuitableVersionFound(
+        'Given desired version {0}, no suitable version of python could '
+        'be matched in the list given by `pyenv versions`.'.format(desired))
+
+
+def _set_env_and_retry(envconfig):
+    # Let's be smart, and resilient to 'command not found'
+    # especially if we can reasonably figure out which
+    # version of python is desired, and that version of python
+    # is installed and available through pyenv.
+    desired_version = ntpath.basename(envconfig.basepython)
+    LOG.debug("tox-pyenv is now looking for the desired python "
+              "version (%s) through pyenv. If it is found, it will "
+              "be enabled and this operation retried.", desired_version)
+
+    def _enable_and_call(_available_version):
+        LOG.debug('Enabling %s by setting $PYENV_VERSION to %s',
+                  desired_version, _available_version)
+        _env = os.environ.copy()
+        _env['PYENV_VERSION'] = _available_version
+        return _pyenv_run(
+            ['which', envconfig.basepython], env=_env)[0]
+
+    known_versions = _get_pyenv_known_versions()
+
+    if desired_version in known_versions:
+        return _enable_and_call(desired_version)
+    else:
+        match = _extrapolate_to_known_version(
+            desired_version, known_versions)
+        return _enable_and_call(match)
+
+
+@tox_hookimpl
+def tox_get_python_executable(envconfig):
+    """Hook into tox plugins to use pyenv to find executables."""
+
+    try:
+        out, err = _pyenv_run(['which', envconfig.basepython])
+    except subprocess.CalledProcessError:
+        try:
+            return _set_env_and_retry(envconfig)
+        except (subprocess.CalledProcessError, NoSuitableVersionFound):
+            if not envconfig.tox_pyenv_fallback:
+                raise PyenvWhichFailed(err)
+            LOG.debug("tox-pyenv plugin failed, falling back. "
+                      "To disable this behavior, set "
+                      "tox_pyenv_fallback=False in your tox.ini or use "
+                      " --tox-pyenv-no-fallback on the command line.")
+    else:
+        return out
 
 
 def _setup_no_fallback(parser):
@@ -149,5 +236,5 @@ def _setup_no_fallback(parser):
 
 @tox_hookimpl
 def tox_addoption(parser):
-    """Add command line option to the argparse-style parser object."""
+    """Add command line options to the argparse-style parser object."""
     _setup_no_fallback(parser)
