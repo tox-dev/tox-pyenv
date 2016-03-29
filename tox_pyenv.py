@@ -109,7 +109,7 @@ def _setup_no_fallback(parser):
             'built-in default logic.')
     # Add a command-line option.
     tox_pyenv_group = parser.argparser.add_argument_group(
-        title='{} plugin options'.format(__title__),
+        title='{0} plugin options'.format(__title__),
     )
     tox_pyenv_group.add_argument(
         '--tox-pyenv-no-fallback', '-F',
