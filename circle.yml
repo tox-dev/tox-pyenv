@@ -14,10 +14,7 @@ machine:
 dependencies:
   override:
     - pip -V
-    - pip install -U pip
-    - pip install -U ipdb
-    - pip install -U tox
-    - pip install -U .
+    - pip install -U 'pip<8.0' 'virtualenv<14.0' ipdb tox .
     - pyenv local $TOX_PY35 $TOX_PY34 $TOX_PY33 $TOX_PY32 $TOX_PY27 $TOX_PY26 $TOX_PYPY
 
 test:
