@@ -67,7 +67,16 @@ class PyenvWhichFailed(ToxPyenvException):
 
 @tox_hookimpl
 def tox_get_python_executable(envconfig):
+    """Return a python executable for the given python base name.
+
+    The first plugin/hook which returns an executable path will determine it.
+
+    ``envconfig`` is the testenv configuration which contains
+    per-testenv configuration, notably the ``.envname`` and ``.basepython``
+    setting.
+    """
     try:
+        # pylint: disable=no-member
         pyenv = (getattr(py.path.local.sysfind('pyenv'), 'strpath', 'pyenv')
                  or 'pyenv')
         cmd = [pyenv, 'which', envconfig.basepython]
@@ -140,4 +149,5 @@ def _setup_no_fallback(parser):
 
 @tox_hookimpl
 def tox_addoption(parser):
+    """Add command line option to the argparse-style parser object."""
     _setup_no_fallback(parser)
