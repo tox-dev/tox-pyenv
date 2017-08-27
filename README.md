@@ -15,7 +15,7 @@ dependencies:
     - pyenv local 2.7.9 3.4.3 3.5.0
 ```
 
-The versions passed to `pyenv local` must be [installed](https://github.com/yyuu/pyenv/blob/master/COMMANDS.md#pyenv-install) for this to work. See [CircleCI Preinstalled Python Versions] for a list.
+The versions passed to `pyenv local` must be [installed](https://github.com/yyuu/pyenv/blob/master/COMMANDS.md#pyenv-install) for this to work. See [CircleCI Preinstalled Python Versions](#circleci-preinstalled-python-versions) for a list.
 
 #### Corresponding [tox.ini](https://tox.readthedocs.org/en/latest/config.html)
 
