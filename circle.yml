@@ -1,11 +1,11 @@
 machine:
   python:
-    version: '2.7.9'
+    version: '2.7.11'
   environment:
     TOX_PYPY: 'pypy-2.5.0'
-    TOX_PY:   '2.7.9'
+    TOX_PY:   '2.7.11'
     TOX_PY26: '2.6.8'
-    TOX_PY27: '2.7.10'
+    TOX_PY27: '2.7.9'
     TOX_PY32: '3.2.5'
     TOX_PY33: '3.3.3'
     TOX_PY34: '3.4.3'
