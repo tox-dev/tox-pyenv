@@ -41,6 +41,11 @@ INSTALL_REQUIRES = [
     'tox>=2.0'
 ]
 
+TESTS_REQUIRE = [
+    'mock>=2.0.0',
+    'pycodestyle>=2.3.1',
+    'pylint>=1.7.2',
+]
 
 CLASSIFIERS = [
     'Intended Audience :: Developers',
@@ -52,7 +57,6 @@ CLASSIFIERS = [
     'Programming Language :: Python :: 2.6',
     'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.2',
     'Programming Language :: Python :: 3.3',
     'Programming Language :: Python :: 3.4',
     'Programming Language :: Python :: 3.5',
@@ -72,6 +76,7 @@ package_attributes = {
     'license': about['__license__'],
     'long_description': LONG_DESCRIPTION,
     'name': about['__title__'],
+    'tests_require': TESTS_REQUIRE,
     'py_modules': ['tox_pyenv'],
     'url': about['__url__'],
     'version': about['__version__'],

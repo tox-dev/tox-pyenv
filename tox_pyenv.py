@@ -67,7 +67,16 @@ class PyenvWhichFailed(ToxPyenvException):
 
 @tox_hookimpl
 def tox_get_python_executable(envconfig):
+    """Return a python executable for the given python base name.
+
+    The first plugin/hook which returns an executable path will determine it.
+
+    ``envconfig`` is the testenv configuration which contains
+    per-testenv configuration, notably the ``.envname`` and ``.basepython``
+    setting.
+    """
     try:
+        # pylint: disable=no-member
         pyenv = (getattr(py.path.local.sysfind('pyenv'), 'strpath', 'pyenv')
                  or 'pyenv')
         cmd = [pyenv, 'which', envconfig.basepython]
@@ -79,19 +88,22 @@ def tox_get_python_executable(envconfig):
         )
         out, err = pipe.communicate()
     except OSError:
-        raise PyenvMissing(
+        err = '\'pyenv\': command not found'
+        LOG.warning(
             "pyenv doesn't seem to be installed, you probably "
-            "don't want this plugin installed either.")
-    if pipe.poll() == 0:
-        return out.strip()
+            "don't want this plugin installed either."
+        )
     else:
-        if not envconfig.tox_pyenv_fallback:
-            raise PyenvWhichFailed(err)
-        LOG.debug("`%s` failed thru tox-pyenv plugin, falling back. "
-                  "STDERR: \"%s\" | To disable this behavior, set "
-                  "tox_pyenv_fallback=False in your tox.ini or use "
-                  " --tox-pyenv-no-fallback on the command line.",
-                  ' '.join([str(x) for x in cmd]), err)
+        if pipe.poll() == 0:
+            return out.strip()
+        else:
+            if not envconfig.tox_pyenv_fallback:
+                raise PyenvWhichFailed(err)
+    LOG.debug("`%s` failed thru tox-pyenv plugin, falling back. "
+              "STDERR: \"%s\" | To disable this behavior, set "
+              "tox_pyenv_fallback=False in your tox.ini or use "
+              " --tox-pyenv-no-fallback on the command line.",
+              ' '.join([str(x) for x in cmd]), err)
 
 
 def _setup_no_fallback(parser):
@@ -137,4 +149,5 @@ def _setup_no_fallback(parser):
 
 @tox_hookimpl
 def tox_addoption(parser):
+    """Add command line option to the argparse-style parser object."""
     _setup_no_fallback(parser)
