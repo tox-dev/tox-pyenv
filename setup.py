@@ -9,7 +9,7 @@ import sys
 here = os.path.dirname(os.path.realpath(__file__))
 with open(os.path.join(here, 'tox_pyenv.py'), 'r') as abt:
     marker, about, abt = '# __about__', {}, abt.read()
-    assert abt.count('# __about__') == 2
+    assert abt.count(marker) == 2
     abt = abt[abt.index(marker):abt.rindex(marker)]
     exec(abt, about)
 
