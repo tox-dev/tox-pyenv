@@ -1,4 +1,15 @@
 # tox-pyenv
+
+> tox 4 delegates the Python discovery job to virtualenv: tox.wiki/en/latest/plugins.html#tox-get-python-executable
+> A special tox plugin like this is no longer needed.
+
+> How to migrate:
+
+> Uninstall tox-pyenv.
+> Install virtualenv-pyenv.
+> Set the discovery mechanism to pyenv. Both export VIRTUALENV_DISCOVERY=pyenv in a shell and setenv = VIRTUALENV_DISCOVERY=pyenv in a tox config do the job. Another option is a virtualenv.ini config file: virtualenv.pypa.io/en/latest/cli_interface.html#conf-file
+
+
 [![latest](https://img.shields.io/pypi/v/tox-pyenv.svg)](https://pypi.python.org/pypi/tox-pyenv)
 [![Circle CI](https://circleci.com/gh/samstav/tox-pyenv/tree/master.svg?style=shield)](https://circleci.com/gh/samstav/tox-pyenv/tree/master)  
 
