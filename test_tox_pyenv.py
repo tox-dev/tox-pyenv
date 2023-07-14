@@ -73,6 +73,13 @@ class TestToxPyenvNoPyenv(unittest.TestCase):
         self.assertEqual(tox_pyenv.LOG.warning.call_args_list, expected_warn)
 
 
+class TestToxPyenvLogger(unittest.TestCase):
+
+    def test_has_nullhandler(self):
+        handlers = {str(type(handler)) for handler in tox_pyenv.LOG.handlers}
+        self.assertTrue(any('NullHandler' in h for h in handlers))
+
+
 class TestThings(unittest.TestCase):
 
     def test_the_answer(self):

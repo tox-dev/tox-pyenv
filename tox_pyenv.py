@@ -49,6 +49,17 @@ from tox import hookimpl as tox_hookimpl
 
 LOG = logging.getLogger(__name__)
 
+try:
+    # Python 2.7+
+    NullHandler = logging.NullHandler
+except AttributeError:
+    class NullHandler(logging.Handler):
+        """This handler does nothing."""
+        def emit(self, record):
+            pass
+
+LOG.addHandler(NullHandler())
+
 
 class ToxPyenvException(Exception):
 
@@ -66,7 +77,7 @@ class PyenvWhichFailed(ToxPyenvException):
 
 
 @tox_hookimpl
-def tox_get_python_executable(envconfig):
+def tox_get_python_executable(envconfig):  # pylint: disable=R1710
     """Return a python executable for the given python base name.
 
     The first plugin/hook which returns an executable path will determine it.
